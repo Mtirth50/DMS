@@ -1,0 +1,81 @@
+'use client';
+
+import { useState } from 'react';
+import { Diamond, Package, FileText, DollarSign } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Navbar } from '@/components/navbar';
+
+interface UserData {
+  name: string
+  isAdmin: boolean
+  // Add other fields as needed
+}
+export default function Home() {
+  const [isLoginOpen, setIsLoginOpen] = useState(false)
+    const [user, setUser] = useState<UserData | null>(null)
+
+  const handleLogin = (userData: UserData) => {
+      setUser(userData)
+      setIsLoginOpen(false)
+    }
+      // Clear error when user starts typing
+      
+  
+    
+  
+    const handleLogout = () => {
+      setUser(null)
+    }
+  
+    function handleNavigation(page: string): void {
+      // For now, simply log the navigation action.
+      // In a real app, you might use a router to navigate to different pages.
+      console.log(`Navigating to: ${page}`)
+    }
+
+  return (
+    <>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="max-w-4xl mx-auto text-center">
+        <Diamond className="h-20 w-20 text-blue-600 mx-auto mb-6" />
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          હીરા વ્યવસ્થાપન સિસ્ટમ
+        </h1>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card>
+            <CardContent className="p-6 text-center">
+              <Package className="h-12 w-12 text-blue-600 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">ઇન્વેન્ટરી વ્યવસ્થાપન</h3>
+              <p className="text-gray-600">સંપૂર્ણ સ્ટોક ટ્રેકિંગ અને વ્યવસ્થાપન</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6 text-center">
+              <FileText className="h-12 w-12 text-blue-600 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">પ્રમાણપત્ર વ્યવસ્થાપન</h3>
+              <p className="text-gray-600">GIA, AGS અને અન્ય પ્રમાણપત્રો</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6 text-center">
+              <DollarSign className="h-12 w-12 text-blue-600 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">કિંમત ટ્રેકિંગ</h3>
+              <p className="text-gray-600">બજાર મૂલ્ય અને કિંમત વિશ્લેષણ</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {!user && (
+          <Button size="lg" onClick={() => setIsLoginOpen(true)}>
+            શરૂ કરો
+          </Button>
+        )}
+      </div>
+    </div>
+    </>
+  );
+}
