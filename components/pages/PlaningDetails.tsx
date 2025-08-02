@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams } from "next/navigation";
 
 interface PlanningData {
   id: string;
@@ -65,7 +65,7 @@ export default function PlanningDetails() {
   if (error) return <div className="text-red-500">{error}</div>;
   if (!planning) return <div>No planning data available.</div>;
 
-  const formatDate = (dateStr) => {
+  const formatDate = (dateStr: string) => {
     if (!dateStr) return "-";
     const date = new Date(dateStr);
     return isNaN(date.getTime())

@@ -3,11 +3,8 @@
 import { useState } from 'react';
 import { Diamond, Package, FileText, DollarSign } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 
 export default function Home() {
-  const [user, setUser] = useState(null); // Replace this with your actual user logic
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -42,12 +39,6 @@ export default function Home() {
             </CardContent>
           </Card>
         </div>
-
-        {!user && (
-          <Button size="lg" onClick={() => setIsLoginOpen(true)}>
-            શરૂ કરો
-          </Button>
-        )}
       </div>
     </div>
   );

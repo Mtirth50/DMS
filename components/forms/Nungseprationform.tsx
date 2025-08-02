@@ -13,7 +13,7 @@ interface Packet {
   packet_no: string; // Changed to match backend 'packet_no'
   weight: number;
   status: string;
-  created_at: string; // Changed to match backend 'created_at' for consistent display
+  created_at: string | null; // Changed to match backend 'created_at' for consistent display
 }
 
 export const NungSeparationForm = () => {
@@ -64,7 +64,7 @@ export const NungSeparationForm = () => {
         const data: Packet[] = await response.json();
         setPackets(data);
       } catch (e: any) {
-        setError(e.message);
+        setError(e.message || "An unexpected error occurred.");
         toast.error("Error fetching packets: " + e.message);
       } finally {
         setLoading(false);

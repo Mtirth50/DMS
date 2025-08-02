@@ -20,7 +20,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { DiamondDetailsForm } from './forms/DiamondDetailsForm';
 import { FormProvider } from '@/context/FormContext';
 import { OfficeProcessingForm } from './forms/OfficeProcessingForm';
-import { MeasurementsForm } from './forms/FinalDiamondform';
+import { FinalDiamondform } from './forms/FinalDiamondform';
 import TransactionForm from './forms/TransactionForm';
 import { DiamondProcessingTabs } from './ProcessingTabs';
 
@@ -83,7 +83,7 @@ export default function TabSection() {
           </TabsContent>
           <TabsContent value="inventory">
               <FormProvider>
-                 <MeasurementsForm/>
+                 <FinalDiamondform/>
               </FormProvider>
           </TabsContent>
 

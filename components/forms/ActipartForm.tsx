@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "sonner"; // Assuming sonner is configured for toasts
+import { toast } from "sonner";
 
 // Define the base URL for your API
 const API_BASE_URL = "http://localhost:4000/api/actipart";

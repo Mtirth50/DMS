@@ -1,38 +1,9 @@
 "use client";
-import { useState } from "react"
 import { Diamond } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import TabSection from "@/components/TabSection"; // adjust path if needed
-import { Navbar } from "@/components/navbar";
+import TabSection from "@/components/TabSection";
 
-interface UserData {
-  name: string
-  isAdmin: boolean
-  // Add other fields as needed
-}
 export default function DiamondManagementPage() {
-  const [isLoginOpen, setIsLoginOpen] = useState(false)
-    const [user, setUser] = useState<UserData | null>(null)
-  
-    
-    const handleLogin = (userData: UserData) => {
-      setUser(userData)
-      setIsLoginOpen(false)
-    }
-      // Clear error when user starts typing
-      
-  
-    
-  
-    const handleLogout = () => {
-      setUser(null)
-    }
-  
-    function handleNavigation(page: string): void {
-      // For now, simply log the navigation action.
-      // In a real app, you might use a router to navigate to different pages.
-      console.log(`Navigating to: ${page}`)
-    }
   return (
     <>
     <div className="min-h-screen bg-gray-50 p-4">

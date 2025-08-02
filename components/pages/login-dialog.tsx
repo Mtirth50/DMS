@@ -90,32 +90,9 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
       });
 
       const data = await response.json();
-      
-      console.log('=== RESPONSE RECEIVED ===');
-      console.log('Response status:', response.status);
-      console.log('Response ok:', response.ok);
-      console.log('Response data type:', typeof data);
-      console.log('Response data:', data);
-      
-      // Check if data is an object and has the expected structure
-      if (typeof data === 'object' && data !== null) {
-        console.log('Response keys:', Object.keys(data));
-        console.log('User object exists:', !!data.user);
-        if (data.user) {
-          console.log('User keys:', Object.keys(data.user));
-          console.log('User role:', data.user.role);
-          console.log('User username:', data.user.username);
-        }
-      }
-      
-      if (!response.ok) {
-        console.log('Response not ok, throwing error:', data.message);
-        throw new Error(data.message || "Login failed");
-      }
-      
       // Extract role from user object
       const actualRole = data.user?.role || "user";
-      console.log('Successfully extracted role:', actualRole);
+      
       
       if (!response.ok) {
         throw new Error(data.message || "Login failed");
@@ -124,14 +101,6 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
         localStorage.setItem('authToken', data.token);
       }
 
-      console.log('=== LOGIN SUCCESS ===');
-      console.log('Calling login with:', {
-        name: data.user?.username || loginData.username,
-        email: data.user?.email || "",
-        isAdmin: actualRole === "admin",
-        role: actualRole, 
-        token: data.token
-      });
       
       login({
         name: data.user?.username || loginData.username,
@@ -152,9 +121,10 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
       });
       setErrors({});
       onOpenChange(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Login failed. Please try again.";
       setErrors({ 
-        form: error.message || "Login failed. Please try again." 
+        form: errorMessage 
       });
     } finally {
       setIsLoading(false);
@@ -202,13 +172,6 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
       });
 
       const data = await response.json();
-      console.log('=== SIGNUP API RESPONSE ===');
-      console.log('Response status:', response.status);
-      console.log('Response data:', data);
-      console.log('Response keys:', Object.keys(data));
-      console.log('Username:', data.username);
-      console.log('Role:', data.role);
-      console.log('Token:', data.token);
       
       if (!response.ok) {
         throw new Error(data.message || "Registration failed");
@@ -217,14 +180,6 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
         localStorage.setItem('authToken', data.token);
       }
 
-      console.log('=== SIGNUP SUCCESS ===');
-      console.log('Calling login with:', {
-        name: data.username || signupData.username,
-        email: data.email || signupData.email,
-        isAdmin: data.role === "admin",
-        role: data.role || (signupData.isAdmin ? "admin" : "user"), 
-        token: data.token
-      });
       
       login({
         name: data.username || signupData.username,
@@ -243,9 +198,10 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
       });
       setErrors({});
       onOpenChange(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Registration failed. Please try again.";
       setErrors({ 
-        form: error.message || "Registration failed. Please try again." 
+        form: errorMessage 
       });
     } finally {
       setIsLoading(false);

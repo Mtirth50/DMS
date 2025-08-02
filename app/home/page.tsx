@@ -1,38 +1,9 @@
 'use client';
 
-import { useState } from 'react';
 import { Diamond, Package, FileText, DollarSign } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Navbar } from '@/components/navbar';
 
-interface UserData {
-  name: string
-  isAdmin: boolean
-  // Add other fields as needed
-}
 export default function Home() {
-  const [isLoginOpen, setIsLoginOpen] = useState(false)
-    const [user, setUser] = useState<UserData | null>(null)
-
-  const handleLogin = (userData: UserData) => {
-      setUser(userData)
-      setIsLoginOpen(false)
-    }
-      // Clear error when user starts typing
-      
-  
-    
-  
-    const handleLogout = () => {
-      setUser(null)
-    }
-  
-    function handleNavigation(page: string): void {
-      // For now, simply log the navigation action.
-      // In a real app, you might use a router to navigate to different pages.
-      console.log(`Navigating to: ${page}`)
-    }
 
   return (
     <>
@@ -69,11 +40,11 @@ export default function Home() {
           </Card>
         </div>
 
-        {!user && (
-          <Button size="lg" onClick={() => setIsLoginOpen(true)}>
+        <div className="mt-8">
+          <a href="/login" className="inline-flex items-center justify-center px-6 py-3 text-base font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700">
             શરૂ કરો
-          </Button>
-        )}
+          </a>
+        </div>
       </div>
     </div>
     </>

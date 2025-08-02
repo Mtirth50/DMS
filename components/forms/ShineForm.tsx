@@ -3,6 +3,8 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Eye, Download } from "lucide-react"
+import { toast } from "sonner"
 
 interface ShineEntry {
   id: number
@@ -14,6 +16,15 @@ interface ShineEntry {
 }
 
 const API_BASE_URL = "http://localhost:4000/api";
+
+// Simple notification function
+const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
+  if (type === 'success') {
+    toast.success(message);
+  } else {
+    toast.error(message);
+  }
+}
 const getToken = () => localStorage.getItem('authToken');
 
 export const ShineForm = () => {
@@ -75,15 +86,15 @@ export const ShineForm = () => {
 
       const data = await res.json()
       if (data.success) {
-        alert("Assigned successfully")
+        toast.success("Assigned successfully")
         fetchShineData()
         fetchAvailablePackets()
         setAssignForm({ packetNo: "", kapanNo: "", partyName: "", weight: "", assignDate: "" })
       } else {
-        alert(data.message)
+        toast.error(data.message || "Assignment failed")
       }
     } catch (err) {
-      alert("Error assigning packet")
+      toast.error("Error assigning packet")
       console.error(err)
     }
   }
@@ -105,7 +116,7 @@ export const ShineForm = () => {
 
       const data = await res.json()
       if (data.success) {
-        alert("Submitted successfully")
+        toast.success("Submitted successfully")
         fetchShineData()
         fetchAvailablePackets()
         setSubmitForm({
@@ -116,10 +127,10 @@ export const ShineForm = () => {
           submissionDate: "",
         })
       } else {
-        alert(data.message)
+        toast.error(data.message || "Submission failed")
       }
     } catch (err) {
-      alert("Error submitting packet")
+      toast.error("Error submitting packet")
       console.error(err)
     }
   }

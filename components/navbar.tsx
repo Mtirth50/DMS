@@ -3,17 +3,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Diamond,
+  Home,
+  Package,
+  BarChart3,
+  FileText,
   Menu,
   User,
-  Settings,
   LogOut,
-  BarChart3,
-  Package,
-  FileText,
+  Settings,
+  Diamond,
   Users,
   Bell,
-  Home,
   ShoppingCart,
 } from "lucide-react";
 
@@ -44,18 +44,17 @@ export function Navbar() {
   const router = useRouter();
   const { user, isLoginOpen, openLogin, logout, closeLogin, login } = useAuth();
   
-  console.log('Navbar user:', user);
-  console.log('User role:', user?.role);
-  console.log('Is admin:', user?.isAdmin);
+
 
   const navigationItems = [
     { id: "home", label: "હોમ", icon: Home },
-    { id: "diamond-management", label: "હીરા વ્યવસ્થાપન", icon: Diamond }
+    
+    { id: "diamond-management", label: "દિમાંડ મેનેજમેન્ટ", icon: Diamond },
   ];
 
   const adminItems = [
     { id: "dashboard", label: "ડેશબોર્ડ", icon: BarChart3 },
-    { id: "user-management", label: "યુઝર વ્યવસ્થાપન", icon: Users },
+    { id: "admin/users", label: "યુઝર મેનેજમેન્ટ", icon: Users },
   ];
 
   const handleNavigation = (page: string) => {

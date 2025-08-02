@@ -1,4 +1,4 @@
-// components/forms/MeasurementsForm.tsx
+// components/forms/FinalDiamondform.tsx
 
 import { useEffect, useState } from "react";
 import { useFormContext } from "@/context/FormContext";
@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-export const MeasurementsForm = () => {
+export const FinalDiamondform = () => {
   const {
     formData,
     updateFormData,
@@ -108,10 +108,6 @@ export const MeasurementsForm = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>માપ</CardTitle>
-        <CardDescription>હીરા માટે વિસ્તૃત માપની વિગતો</CardDescription>
-      </CardHeader>
 
       <CardContent className="space-y-6">
         <form onSubmit={handleSubmit}>

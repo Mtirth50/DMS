@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useRef } from "react";
 
 import {
@@ -21,7 +22,7 @@ import {
   BarController,
   DoughnutController,
 } from "chart.js";
-import { Chart } from "react-chartjs-2";
+
 
 ChartJS.register(
   CategoryScale,
@@ -41,7 +42,7 @@ ChartJS.register(
 
 import { useRouter } from "next/navigation";
 
-const NAV_TABS = [
+const NAV_TABS = [  
   { id: "dashboard", label: "Dashboard" },
   { id: "inventory", label: "Inventory" },
   { id: "processing-logs", label: "Processing Logs" },
@@ -103,8 +104,8 @@ export default function Dashboard() {
   const [processingLogsError, setProcessingLogsError] = useState<string | null>(null);
 
   // Pending submissions state
-  const [pendingSubmissions, setPendingSubmissions] = useState<any[]>([]);
-  const [pendingSubmissionsLoading, setPendingSubmissionsLoading] = useState(false);
+  const [pendingSubmissions, setPendingSubmissions] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-unused-vars
+  const [pendingSubmissionsLoading, setPendingSubmissionsLoading] = useState(false); // eslint-disable-line @typescript-eslint/no-unused-vars
 
   // Add at the top with other useState imports
   const [transactionDate, setTransactionDate] = useState("");

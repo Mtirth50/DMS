@@ -15,50 +15,43 @@ import { CheckCircle, AlertCircle, RefreshCw, Download, FileText, Eye } from "lu
 
 const API_BASE_URL = "http://localhost:4000/api" // Adjust to your backend URL
 
+interface PlanningEntry {
+  id: number
+  packet_no: string
+  planner_name: string
+  kapan_wt: number
+  exp_wt: number
+  exp_percent: number
+  pol_dollar: number
+  status: string
+  has_csv: boolean
+  created_at: string
+}
+
 const Planningform = () => {
   const [assignData, setAssignData] = useState({
     packetNo: "",
     plannername: "",
     assignDate: "",
-  })
-
-  const [submitData, setSubmitData] = useState<{
-    packetNo: string;
-    plannername: string;
-    csvFile: File | null;
-  }>({
+  });
+  
+  const [submitData, setSubmitData] = useState({
     packetNo: "",
     plannername: "",
-    csvFile: null,
-  })
+    csvFile: null as File | null,
+  });
 
-  type PlanningEntry = {
-    id: number
-    packet_no: string
-    planner_name: string
-    kapan_wt: number
-    exp_wt: number
-    exp_percent: number
-    pol_dollar: number
-    status: string
-    has_csv: boolean
-    created_at: string
-  }
   const [planningEntries, setPlanningEntries] = useState<PlanningEntry[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  type NotificationType = { message: string; type: "success" | "error" } | null
-  const [notification, setNotification] = useState<NotificationType>(null)
   const [availablePackets, setAvailablePackets] = useState<string[]>([])
-  const [plannerNames, setPlannerNames] = useState<string[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const [notification, setNotification] = useState<{ message: string; type: "success" | "error" } | null>(null)
 
-  
   const showNotification = (message: string, type: "success" | "error" = "success") => {
     setNotification({ message, type })
     setTimeout(() => setNotification(null), 3000)
   }
 
-  // Fetch available packets
   const fetchAvailablePackets = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/galaxy-scanning/all`, {
@@ -69,9 +62,8 @@ const Planningform = () => {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Failed to fetch packets');
-      // Filter for status 'submitted' and extract packet_no
       const submittedPackets = Array.isArray(data.data)
-        ? data.data.filter((pkt: any) => pkt.status === 'submitted').map((pkt: any) => pkt.packet_no)
+        ? data.data.filter((pkt: { status: string }) => pkt.status === 'submitted').map((pkt: { packet_no: string }) => pkt.packet_no)
         : [];
       setAvailablePackets(submittedPackets);
     } catch (err) {
@@ -80,36 +72,30 @@ const Planningform = () => {
     }
   }
 
-  // Fetch planner names
-
-  // Fetch planning entries
   const fetchPlanningData = async () => {
-  try {
-    setLoading(true);
-    setError(null);
-    
-    const response = await fetch(`${API_BASE_URL}/planning/entries`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-      },
-    });
-    
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message || "Failed to load planning data");
-    setPlanningEntries(data.data || data);
-    
-  } catch (err) {
-    console.error("Error fetching planning data:", err);
-    setError(err instanceof Error ? err.message : "Error loading data");
-  } finally {
-    setLoading(false);
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch(`${API_BASE_URL}/planning/entries`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        },
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Failed to load planning data");
+      setPlanningEntries(data.data || data);
+    } catch (err) {
+      console.error("Error fetching planning data:", err);
+      setError(err instanceof Error ? err.message : "Error loading data");
+    } finally {
+      setLoading(false);
+    }
   }
-}
 
   useEffect(() => {
     fetchAvailablePackets();
-    fetchPlanningData()
+    fetchPlanningData();
   }, [])
 
   useEffect(() => {
@@ -124,94 +110,89 @@ const Planningform = () => {
           }
         });
     }
-    // Only run when packetNo changes
-    // eslint-disable-next-line
   }, [submitData.packetNo]);
 
   const handleAssignSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  
-  const { packetNo, plannername, assignDate } = assignData;
-  
-  if (!packetNo || !plannername || !assignDate) {
-    showNotification("Please fill all fields", "error");
-    return;
-  }
+    e.preventDefault();
+    const { packetNo, plannername, assignDate } = assignData;
+    
+    if (!packetNo || !plannername || !assignDate) {
+      showNotification("Please fill all fields", "error");
+      return;
+    }
 
-  try {
-    const response = await fetch(`http://localhost:4000/planning/assign`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-      },
-      body: JSON.stringify({
-        packet_no: packetNo,
-        planner_name: plannername,
-        assign_date: assignDate,
-      }),
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message || 'Assignment failed');
-    
-    showNotification("Planning assigned successfully!");
-    
-    // Pre-fill the submit form
-    setSubmitData(prev => ({
-      ...prev,
-      packetNo: packetNo,
-      plannername: plannername,
-    }));
-    
-    // Reset form and refresh data
-    setAssignData({ packetNo: "", plannername: "", assignDate: "" });
-    fetchAvailablePackets();
-    fetchPlanningData();
-    
-  } catch (err) {
-    showNotification(err instanceof Error ? err.message : "Assignment failed", "error");
+    try {
+      const response = await fetch(`http://localhost:4000/planning/assign`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        },
+        body: JSON.stringify({
+          packet_no: packetNo,
+          planner_name: plannername,
+          assign_date: assignDate,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Assignment failed');
+      
+      showNotification("Planning assigned successfully!");
+      
+      // Pre-fill the submit form
+      setSubmitData(prev => ({
+        ...prev,
+        packetNo: packetNo,
+        plannername: plannername,
+      }));
+      
+      // Reset form and refresh data
+      setAssignData({ packetNo: "", plannername: "", assignDate: "" });
+      fetchAvailablePackets();
+      fetchPlanningData();
+      
+    } catch (err) {
+      showNotification(err instanceof Error ? err.message : "Assignment failed", "error");
+    }
   }
-}
-
 
   const handleSubmitFormSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  
-  const { packetNo, plannername, csvFile } = submitData;
-  
-  if (!packetNo || !plannername || !csvFile) {
-    showNotification("Please fill all fields", "error");
-    return;
-  }
+    e.preventDefault();
+    const { packetNo, plannername, csvFile } = submitData;
+    
+    if (!packetNo || !plannername || !csvFile) {
+      showNotification("Please fill all fields", "error");
+      return;
+    }
 
-  try {
-    const formData = new FormData();
-    formData.append('packet_no', packetNo);
-    formData.append('planner_name', plannername);
-    formData.append('csv_file', csvFile);
-    
-    const response = await fetch(`http://localhost:4000/planning/submit`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-      },
-      body: formData,
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message || 'Submission failed');
-    
-    showNotification("Planning submitted successfully!");
-    
-    // Reset form and refresh data
-    setSubmitData({ packetNo: "", plannername: "", csvFile: null });
-    const fileInput = document.getElementById('csv_file') as HTMLInputElement;
-    if (fileInput) fileInput.value = '';
-    fetchPlanningData();
-    
-  } catch (err) {
-    showNotification(err instanceof Error ? err.message : "Submission failed", "error");
+    try {
+      const formData = new FormData();
+      formData.append('packet_no', packetNo);
+      formData.append('planner_name', plannername);
+      formData.append('csv_file', csvFile);
+      
+      const response = await fetch(`http://localhost:4000/planning/submit`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        },
+        body: formData,
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Submission failed');
+      
+      showNotification("Planning submitted successfully!");
+      
+      // Reset form and refresh data
+      setSubmitData({ packetNo: "", plannername: "", csvFile: null });
+      const fileInput = document.getElementById('csv_file') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
+      fetchPlanningData();
+      
+    } catch (err) {
+      showNotification(err instanceof Error ? err.message : "Submission failed", "error");
+    }
   }
-}
 
   const formatNumber = (num: number | string | null | undefined) => (num ? parseFloat(num as string).toFixed(2) : "-")
 
@@ -229,21 +210,79 @@ const Planningform = () => {
   }
 
   const handleDownloadPDF = (entryId: number) => {
-    // In real implementation:
-    // window.open(`${API_BASE_URL}/planning/pdf/${entryId}`, '_blank')
-    showNotification("PDF download would start here", "success")
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      showNotification("Authentication required", "error");
+      return;
+    }
+    
+    const url = `http://localhost:4000/planning/${entryId}/pdf`;
+    
+    fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/pdf'
+      }
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Failed to download PDF');
+      }
+      return response.blob();
+    })
+    .then(blob => {
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `planning_${entryId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+    })
+    .catch(error => {
+      showNotification("Failed to download PDF: " + error.message, "error");
+    });
   }
 
-  const handleDownloadCSV = (entryId: number) => {
-    // In real implementation:
-    // window.open(`${API_BASE_URL}/planning/download/${entryId}`, '_blank')
-    showNotification("CSV download would start here", "success")
-  }
+  const handleDownloadCSV = async (planningId: number) => {
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        showNotification("Authentication required", "error");
+        return;
+      }
+
+      const response = await fetch(`http://localhost:4000/planning/${planningId}/csv`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to download CSV');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `planning_${planningId}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      showNotification("CSV downloaded successfully");
+    } catch (error) {
+      console.error('CSV download error:', error);
+      showNotification("Failed to download CSV", "error");
+    }
+  };
 
   const handleViewDetails = (entryId: number) => {
-    // In real implementation:
-    // window.open(`/planning/${entryId}`, '_blank')
-    showNotification("View details would open here", "success")
+    window.location.href = `/planning-details/${entryId}`
   }
 
   return (
@@ -285,7 +324,7 @@ const Planningform = () => {
               <div>
                 <Label htmlFor="assign_planner_name">પ્લાનર નામ</Label>
                 <Input
-                  id="assign_date"
+                  id="assign_planner_name"
                   type="text"
                   value={assignData.plannername}
                   onChange={(e) => setAssignData({ ...assignData, plannername: e.target.value })}
@@ -409,45 +448,62 @@ const Planningform = () => {
                         સ્ટેટસ
                       </th>
                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        ક્રિયાઓ
+                        કાર્યવાહી
                       </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {planningEntries.map((entry) => (
-                      <tr key={entry.id}>
-                        <td className="px-3 py-2 whitespace-nowrap">{entry.packet_no || "-"}</td>
-                        <td className="px-3 py-2 whitespace-nowrap">{entry.planner_name || "-"}</td>
-                        <td className="px-3 py-2 whitespace-nowrap text-right">{formatNumber(entry.kapan_wt)}</td>
-                        <td className="px-3 py-2 whitespace-nowrap text-right">{formatNumber(entry.exp_wt)}</td>
-                        <td className="px-3 py-2 whitespace-nowrap text-right">{formatNumber(entry.exp_percent)}</td>
-                        <td className="px-3 py-2 whitespace-nowrap text-right">{formatNumber(entry.pol_dollar)}</td>
-                        <td className="px-3 py-2 whitespace-nowrap">{getStatusBadge(entry.status)}</td>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm font-medium">
+                      <tr key={entry.id} className="hover:bg-gray-50">
+                        <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {entry.packet_no}
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
+                          {entry.planner_name}
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right">
+                          {formatNumber(entry.kapan_wt)}
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right">
+                          {formatNumber(entry.exp_wt)}
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right">
+                          {formatNumber(entry.exp_percent)}%
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right">
+                          ${formatNumber(entry.pol_dollar)}
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap text-sm">
+                          {getStatusBadge(entry.status)}
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
                           <div className="flex space-x-2">
-                            <button
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() => handleViewDetails(entry.id)}
-                              className="text-blue-600 hover:text-blue-900 flex items-center"
                               title="View Details"
                             >
                               <Eye className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDownloadPDF(entry.id)}
-                              className="text-red-600 hover:text-red-900 flex items-center"
-                              title="Download PDF"
-                            >
-                              <FileText className="h-4 w-4" />
-                            </button>
+                            </Button>
                             {entry.has_csv && (
-                              <button
+                              <Button
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => handleDownloadCSV(entry.id)}
-                                className="text-gray-600 hover:text-gray-900 flex items-center"
                                 title="Download CSV"
                               >
                                 <Download className="h-4 w-4" />
-                              </button>
+                              </Button>
                             )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDownloadPDF(entry.id)}
+                              title="Download PDF"
+                            >
+                              <FileText className="h-4 w-4" />
+                            </Button>
                           </div>
                         </td>
                       </tr>

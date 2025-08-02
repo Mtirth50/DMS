@@ -27,6 +27,7 @@ export type UserData = {
   email: string;
   isAdmin: boolean;
   token: string;
+  role: string;
 };
 
 interface LoginDialogProps {
@@ -34,7 +35,7 @@ interface LoginDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
+export default function LoginPage() {
   const { login } = useAuth();
   const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
   const [showPassword, setShowPassword] = useState(false);
@@ -97,7 +98,8 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
         name: data.username || loginData.username,
         email: data.email || "",
         isAdmin: data.role === "admin",
-        token: data.token
+        token: data.token,
+        role: data.role || "user"
       });
 
       if (loginData.rememberMe) {
@@ -110,7 +112,6 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
         rememberMe: false,
       });
       setErrors({});
-      onOpenChange(false);
     } catch (error: any) {
       setErrors({ 
         form: error.message || "Login failed. Please try again." 
@@ -170,7 +171,8 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
         name: data.username || signupData.username,
         email: data.email || signupData.email,
         isAdmin: data.role === "admin",
-        token: data.token
+        token: data.token,
+        role: data.role || (signupData.isAdmin ? "admin" : "user")
       });
 
       setSignupData({
@@ -181,7 +183,6 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
         isAdmin: false,
       });
       setErrors({});
-      onOpenChange(false);
     } catch (error: any) {
       setErrors({ 
         form: error.message || "Registration failed. Please try again." 
@@ -192,212 +193,216 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center justify-center space-x-2">
-            <Diamond className="h-6 w-6 text-blue-600" />
-            <span>Diamond Management System</span>
-          </DialogTitle>
-          <DialogDescription className="text-center">
-            Log in to your account or create a new one
-          </DialogDescription>
-        </DialogHeader>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <Diamond className="h-12 w-12 text-blue-600" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            હીરા વ્યવસ્થાપન સિસ્ટમ
+          </h1>
+          <p className="text-gray-600">
+            {activeTab === "login" ? "Sign in to your account" : "Create a new account"}
+          </p>
+        </div>
+        
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          {errors.form && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{errors.form}</AlertDescription>
+            </Alert>
+          )}
 
-        {errors.form && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{errors.form}</AlertDescription>
-          </Alert>
-        )}
+          <Tabs 
+            value={activeTab} 
+            onValueChange={(value) => {
+              setActiveTab(value as "login" | "signup");
+              setErrors({});
+            }}
+            className="w-full"
+          >
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="login">Login</TabsTrigger>
+              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            </TabsList>
 
-        <Tabs 
-          value={activeTab} 
-          onValueChange={(value) => {
-            setActiveTab(value as "login" | "signup");
-            setErrors({});
-          }}
-          className="w-full"
-        >
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">Login</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="login" className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <Label htmlFor="login-username">Username</Label>
-              <Input
-                id="login-username"
-                placeholder="Enter your username"
-                value={loginData.username}
-                onChange={(e) => setLoginData({
-                  ...loginData,
-                  username: e.target.value
-                })}
-                className={errors.username ? "border-red-500" : ""}
-              />
-              {errors.username && (
-                <p className="text-sm text-red-500 mt-1">{errors.username}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="login-password">Password</Label>
-              <div className="relative">
+            <TabsContent value="login" className="space-y-4 pt-4">
+              <div className="space-y-2">
+                <Label htmlFor="login-username">Username</Label>
                 <Input
-                  id="login-password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  value={loginData.password}
+                  id="login-username"
+                  placeholder="Enter your username"
+                  value={loginData.username}
                   onChange={(e) => setLoginData({
                     ...loginData,
+                    username: e.target.value
+                  })}
+                  className={errors.username ? "border-red-500" : ""}
+                />
+                {errors.username && (
+                  <p className="text-sm text-red-500 mt-1">{errors.username}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="login-password">Password</Label>
+                <div className="relative">
+                  <Input
+                    id="login-password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    value={loginData.password}
+                    onChange={(e) => setLoginData({
+                      ...loginData,
+                      password: e.target.value
+                    })}
+                    className={errors.password ? "border-red-500" : ""}
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                {errors.password && (
+                  <p className="text-sm text-red-500 mt-1">{errors.password}</p>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="remember-me"
+                    checked={loginData.rememberMe}
+                    onCheckedChange={(checked) => setLoginData({
+                      ...loginData,
+                      rememberMe: Boolean(checked)
+                    })}
+                  />
+                  <Label htmlFor="remember-me" className="text-sm">
+                    Remember me
+                  </Label>
+                </div>
+                <Button variant="link" className="text-sm h-auto p-0">
+                  Forgot password?
+                </Button>
+              </div>
+
+              <Button 
+                onClick={handleLogin} 
+                className="w-full"
+                disabled={isLoading}
+              >
+                {isLoading ? "Logging in..." : "Login"}
+              </Button>
+            </TabsContent>
+
+            <TabsContent value="signup" className="space-y-4 pt-4">
+              <div className="space-y-2">
+                <Label htmlFor="signup-username">Username</Label>
+                <Input
+                  id="signup-username"
+                  placeholder="Enter your username"
+                  value={signupData.username}
+                  onChange={(e) => setSignupData({
+                    ...signupData,
+                    username: e.target.value
+                  })}
+                  className={errors.username ? "border-red-500" : ""}
+                />
+                {errors.username && (
+                  <p className="text-sm text-red-500 mt-1">{errors.username}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="signup-email">Email</Label>
+                <Input
+                  id="signup-email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={signupData.email}
+                  onChange={(e) => setSignupData({
+                    ...signupData,
+                    email: e.target.value
+                  })}
+                  className={errors.email ? "border-red-500" : ""}
+                />
+                {errors.email && (
+                  <p className="text-sm text-red-500 mt-1">{errors.email}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="signup-password">Password</Label>
+                <Input
+                  id="signup-password"
+                  type="password"
+                  placeholder="Create a password"
+                  value={signupData.password}
+                  onChange={(e) => setSignupData({
+                    ...signupData,
                     password: e.target.value
                   })}
                   className={errors.password ? "border-red-500" : ""}
                 />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
+                {errors.password && (
+                  <p className="text-sm text-red-500 mt-1">{errors.password}</p>
+                )}
               </div>
-              {errors.password && (
-                <p className="text-sm text-red-500 mt-1">{errors.password}</p>
-              )}
-            </div>
 
-            <div className="flex items-center justify-between">
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password">Confirm Password</Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  placeholder="Re-enter your password"
+                  value={signupData.confirmPassword}
+                  onChange={(e) => setSignupData({
+                    ...signupData,
+                    confirmPassword: e.target.value
+                  })}
+                  className={errors.confirmPassword ? "border-red-500" : ""}
+                />
+                {errors.confirmPassword && (
+                  <p className="text-sm text-red-500 mt-1">{errors.confirmPassword}</p>
+                )}
+              </div>
+
               <div className="flex items-center space-x-2">
                 <Checkbox
-                  id="remember-me"
-                  checked={loginData.rememberMe}
-                  onCheckedChange={(checked) => setLoginData({
-                    ...loginData,
-                    rememberMe: Boolean(checked)
+                  id="admin-account"
+                  checked={signupData.isAdmin}
+                  onCheckedChange={(checked) => setSignupData({
+                    ...signupData,
+                    isAdmin: Boolean(checked)
                   })}
                 />
-                <Label htmlFor="remember-me" className="text-sm">
-                  Remember me
+                <Label htmlFor="admin-account" className="text-sm">
+                  Create admin account
                 </Label>
               </div>
-              <Button variant="link" className="text-sm h-auto p-0">
-                Forgot password?
+
+              <Button 
+                onClick={handleSignup} 
+                className="w-full"
+                disabled={isLoading}
+              >
+                {isLoading ? "Creating account..." : "Create Account"}
               </Button>
-            </div>
-
-            <Button 
-              onClick={handleLogin} 
-              className="w-full"
-              disabled={isLoading}
-            >
-              {isLoading ? "Logging in..." : "Login"}
-            </Button>
-          </TabsContent>
-
-          <TabsContent value="signup" className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <Label htmlFor="signup-username">Username</Label>
-              <Input
-                id="signup-username"
-                placeholder="Enter your username"
-                value={signupData.username}
-                onChange={(e) => setSignupData({
-                  ...signupData,
-                  username: e.target.value
-                })}
-                className={errors.username ? "border-red-500" : ""}
-              />
-              {errors.username && (
-                <p className="text-sm text-red-500 mt-1">{errors.username}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="signup-email">Email</Label>
-              <Input
-                id="signup-email"
-                type="email"
-                placeholder="Enter your email"
-                value={signupData.email}
-                onChange={(e) => setSignupData({
-                  ...signupData,
-                  email: e.target.value
-                })}
-                className={errors.email ? "border-red-500" : ""}
-              />
-              {errors.email && (
-                <p className="text-sm text-red-500 mt-1">{errors.email}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="signup-password">Password</Label>
-              <Input
-                id="signup-password"
-                type="password"
-                placeholder="Create a password"
-                value={signupData.password}
-                onChange={(e) => setSignupData({
-                  ...signupData,
-                  password: e.target.value
-                })}
-                className={errors.password ? "border-red-500" : ""}
-              />
-              {errors.password && (
-                <p className="text-sm text-red-500 mt-1">{errors.password}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="confirm-password">Confirm Password</Label>
-              <Input
-                id="confirm-password"
-                type="password"
-                placeholder="Re-enter your password"
-                value={signupData.confirmPassword}
-                onChange={(e) => setSignupData({
-                  ...signupData,
-                  confirmPassword: e.target.value
-                })}
-                className={errors.confirmPassword ? "border-red-500" : ""}
-              />
-              {errors.confirmPassword && (
-                <p className="text-sm text-red-500 mt-1">{errors.confirmPassword}</p>
-              )}
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="admin-account"
-                checked={signupData.isAdmin}
-                onCheckedChange={(checked) => setSignupData({
-                  ...signupData,
-                  isAdmin: Boolean(checked)
-                })}
-              />
-              <Label htmlFor="admin-account" className="text-sm">
-                Create admin account
-              </Label>
-            </div>
-
-            <Button 
-              onClick={handleSignup} 
-              className="w-full"
-              disabled={isLoading}
-            >
-              {isLoading ? "Creating account..." : "Create Account"}
-            </Button>
-          </TabsContent>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
+    </div>
   );
 }
