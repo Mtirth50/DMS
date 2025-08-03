@@ -8,17 +8,23 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner"; // Added sonner toast import
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"; // Added select imports
+import { toast } from "sonner"; 
 
 const API_BASE_URL = "http://localhost:4000/api/fourp";
 const getAuthToken = () => localStorage.getItem("authToken");
+
+
+interface Packet {
+  packet_no: string;
+  kapan_no: string;
+  party_name: string;
+  weight: number;
+  planner_name?: string; // optional, if not always present
+  kapan_wt?: number;
+  status?: string;
+}
+
+
 
 export const FourpForm = () => {
   // State for the Assign Form fields
@@ -41,8 +47,8 @@ export const FourpForm = () => {
   });
 
   // Dropdown data
-  const [eligiblePackets, setEligiblePackets] = useState([]); // for assign
-  const [assignedPackets, setAssignedPackets] = useState([]); // for submit
+  const [eligiblePackets, setEligiblePackets] = useState<Packet[]>([]); // for assign
+  const [assignedPackets, setAssignedPackets] = useState<Packet[]>([]); // for submit
   const [loadingAssignDropdown, setLoadingAssignDropdown] = useState(true);
   const [loadingSubmitDropdown, setLoadingSubmitDropdown] = useState(true);
   const [submittingAssign, setSubmittingAssign] = useState(false);
@@ -58,8 +64,12 @@ export const FourpForm = () => {
       });
       if (!res.ok) throw new Error("Failed to fetch eligible packets");
       setEligiblePackets(await res.json());
-    } catch (e: any) {
-      toast.error(e.message);
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        toast.error(e.message);
+      } else {
+        toast.error("અજાણી ભૂલ");
+      }
     } finally {
       setLoadingAssignDropdown(false);
     }
@@ -75,9 +85,13 @@ export const FourpForm = () => {
       });
       if (!res.ok) throw new Error("Failed to fetch entries");
       const data = await res.json();
-      setAssignedPackets(data.filter((entry: any) => entry.status === "assigned"));
-    } catch (e: any) {
-      toast.error(e.message);
+      setAssignedPackets(data.filter((entry: Packet) => entry.status === "assigned"));
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        toast.error(e.message);
+      } else {
+        toast.error("અજાણી ભૂલ");
+      }
     } finally {
       setLoadingSubmitDropdown(false);
     }
@@ -90,7 +104,7 @@ export const FourpForm = () => {
 
   // When assign packet is selected, auto-fill other fields
   useEffect(() => {
-    const pkt: any = eligiblePackets.find((p: any) => p.packet_no === assignForm.packetNo);
+    const pkt: Packet | undefined = eligiblePackets.find((p: Packet) => p.packet_no === assignForm.packetNo);
     if (pkt) {
       setAssignForm((prev) => ({
         ...prev,
@@ -105,7 +119,7 @@ export const FourpForm = () => {
 
   // When submit packet is selected, auto-fill other fields
   useEffect(() => {
-    const pkt: any = assignedPackets.find((p: any) => p.packet_no === submitForm.packetNo);
+    const pkt: Packet | undefined = assignedPackets.find((p: Packet) => p.packet_no === submitForm.packetNo);
     if (pkt) {
       setSubmitForm((prev) => ({
         ...prev,
@@ -150,8 +164,12 @@ export const FourpForm = () => {
       });
       fetchEligiblePackets();
       fetchAssignedPackets();
-    } catch (e: any) {
-      toast.error(e.message);
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        toast.error(e.message);
+      } else {
+        toast.error("અજાણી ભૂલ");
+      }
     } finally {
       setSubmittingAssign(false);
     }
@@ -187,8 +205,12 @@ export const FourpForm = () => {
         submissionDate: new Date().toISOString().split("T")[0],
       });
       fetchAssignedPackets();
-    } catch (e: any) {
-      toast.error(e.message);
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        toast.error(e.message);
+      } else {
+        toast.error("અજાણી ભૂલ");
+      }
     } finally {
       setSubmittingSubmit(false);
     }
@@ -219,7 +241,7 @@ export const FourpForm = () => {
                   ) : eligiblePackets.length === 0 ? (
                     <option value="no-data" disabled>કોઈ ઉપલબ્ધ પેકેટ નથી.</option>
                   ) : (
-                    eligiblePackets.map((pkt: any) => (
+                    eligiblePackets.map((pkt: Packet) => (
                       <option key={pkt.packet_no} value={pkt.packet_no}>
                         {pkt.packet_no} ({pkt.kapan_no})
                       </option>
@@ -289,7 +311,7 @@ export const FourpForm = () => {
                   ) : assignedPackets.length === 0 ? (
                     <option value="no-data" disabled>કોઈ સોંપેલ પેકેટ નથી.</option>
                   ) : (
-                    assignedPackets.map((pkt: any) => (
+                    assignedPackets.map((pkt: Packet) => (
                       <option key={pkt.packet_no} value={pkt.packet_no}>
                         {pkt.packet_no} ({pkt.kapan_no})
                       </option>

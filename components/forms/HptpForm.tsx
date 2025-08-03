@@ -17,6 +17,14 @@ interface Packet {
   weight: number;
 }
 
+interface PlanningEntry {
+  packet_no: string;
+  kapan_no: string;
+  planner_name: string;
+  kapan_wt: number;
+  status: string;
+}
+
 const API_BASE_URL = "http://localhost:4000/api/hpht";
 const getAuthToken = () => localStorage.getItem("authToken");
 
@@ -75,7 +83,7 @@ export const HptpForm = () => {
       });
       if (!res.ok) throw new Error("Failed to fetch entries");
       const data = await res.json();
-      setAssignedPackets(data.filter((entry: any) => entry.status === "assigned"));
+      setAssignedPackets(data.filter((entry: PlanningEntry) => entry.status === "assigned"));
     } catch (e) {
       toast.error(e instanceof Error ? e.message : String(e));
     } finally {

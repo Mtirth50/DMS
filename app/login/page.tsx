@@ -2,13 +2,6 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogHeader, 
-  DialogTitle 
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { 
@@ -29,11 +22,6 @@ export type UserData = {
   token: string;
   role: string;
 };
-
-interface LoginDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -112,10 +100,16 @@ export default function LoginPage() {
         rememberMe: false,
       });
       setErrors({});
-    } catch (error: any) {
-      setErrors({ 
-        form: error.message || "Login failed. Please try again." 
-      });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setErrors({ 
+          form: error.message || "Login failed. Please try again." 
+        });
+      } else {
+        setErrors({ 
+          form: "Login failed. Please try again." 
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -183,10 +177,16 @@ export default function LoginPage() {
         isAdmin: false,
       });
       setErrors({});
-    } catch (error: any) {
-      setErrors({ 
-        form: error.message || "Registration failed. Please try again." 
-      });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setErrors({ 
+          form: error.message || "Registration failed. Please try again." 
+        });
+      } else {
+        setErrors({ 
+          form: "Registration failed. Please try again." 
+        });
+      }
     } finally {
       setIsLoading(false);
     }

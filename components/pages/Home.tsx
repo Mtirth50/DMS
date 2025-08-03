@@ -1,6 +1,4 @@
 'use client';
-
-import { useState } from 'react';
 import { Diamond, Package, FileText, DollarSign } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 

@@ -3,7 +3,6 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Eye, Download } from "lucide-react"
 import { toast } from "sonner"
 
 interface ShineEntry {
@@ -15,16 +14,26 @@ interface ShineEntry {
   status: string
 }
 
+interface PlanningEntry {
+  packet_no: string;
+  kapan_no: string;
+  planner_name: string;
+  kapan_wt: number;
+  status: string;
+}
+
+interface ApiShineEntry {
+  id: number
+  packet_no: string
+  kapan_no: string
+  party_name: string
+  weight: number
+  status: string
+}
+
 const API_BASE_URL = "http://localhost:4000/api";
 
 // Simple notification function
-const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
-  if (type === 'success') {
-    toast.success(message);
-  } else {
-    toast.error(message);
-  }
-}
 const getToken = () => localStorage.getItem('authToken');
 
 export const ShineForm = () => {
@@ -58,7 +67,7 @@ export const ShineForm = () => {
       const data = await res.json();
       // Only show packets not yet submitted
       const packets = Array.isArray(data.data)
-        ? data.data.filter((entry: any) => entry.status !== 'submitted').map((entry: any) => entry.packet_no)
+        ? data.data.filter((entry: PlanningEntry) => entry.status !== 'submitted').map((entry: PlanningEntry) => entry.packet_no)
         : [];
       setAvailablePackets(packets);
     } catch (err) {
@@ -137,13 +146,14 @@ export const ShineForm = () => {
 
   const fetchShineData = async () => {
     try {
+
       const res = await fetch(`${API_BASE_URL}/shine/entries`, {
         headers: {
           Authorization: `Bearer ${getToken()}`
         }
       })
-      const data = await res.json()
-      const mappedData: ShineEntry[] = data.map((entry: any) => ({
+      const data = await res.json();
+      const mappedData: ShineEntry[] = data.map((entry: ApiShineEntry) => ({
         id: entry.id,
         packetNo: entry.packet_no,
         kapanNo: entry.kapan_no,
@@ -153,7 +163,8 @@ export const ShineForm = () => {
       }))
       setShineEntries(mappedData)
     } catch (err) {
-      console.error('Failed to fetch shine data', err)
+      toast.error("Error fetching shine data")
+      console.error(err)
     }
   }
 
@@ -175,7 +186,7 @@ export const ShineForm = () => {
 
         if (res.ok) {
           const data = await res.json()
-          const packetData = data.data?.find((entry: any) => entry.packet_no === assignForm.packetNo)
+          const packetData = data.data?.find((entry: PlanningEntry) => entry.packet_no === assignForm.packetNo)
           
           if (packetData) {
             setAssignForm((prev) => ({
@@ -213,7 +224,7 @@ export const ShineForm = () => {
 
         if (res.ok) {
           const data = await res.json()
-          const packetData = data.data?.find((entry: any) => entry.packet_no === submitForm.packetNo)
+          const packetData = data.data?.find((entry: PlanningEntry) => entry.packet_no === submitForm.packetNo)
           
           if (packetData) {
             setSubmitForm((prev) => ({

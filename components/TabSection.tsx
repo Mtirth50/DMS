@@ -7,7 +7,6 @@ import {
   DollarSign,
   Package,
   Users,
-  ShoppingCart,
   CheckCircle,
 } from 'lucide-react';
 import {

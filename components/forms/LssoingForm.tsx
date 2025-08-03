@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { useFormContext } from "@/context/FormContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -34,6 +33,22 @@ interface ShineEntry {
   assignDate: string;
   submissionDate: string | null;
 }
+
+interface PlanningEntry {
+  id: number;
+  packet_no: string;
+  kapan_no: string;
+  planner_name: string;
+  kapan_wt: number;
+  status: string;
+  party_name: string;
+  assign_date: string;
+  submission_date: string | null;
+  weight: number;
+  carats: number;
+  tops: number;
+}
+
 
 // Interface for data coming from backend for available Nung/Kapan numbers
 interface ShinePacket {
@@ -71,7 +86,7 @@ export const LssoingForm = () => {
 
   // Loading states for various API calls
   const [loadingAssignDropdowns, setLoadingAssignDropdowns] = useState(true);
-  const [loadingSubmitDropdown, setLoadingSubmitDropdown] = useState(true);
+  //const [loadingSubmitDropdown, setLoadingSubmitDropdown] = useState(true);
   const [submittingAssign, setSubmittingAssign] = useState(false);
   const [submittingSubmit, setSubmittingSubmit] = useState(false);
   const [loadingShineEntries, setLoadingShineEntries] = useState(true);
@@ -113,7 +128,7 @@ export const LssoingForm = () => {
 
       // Get packet numbers from both sources
       const planningPackets = new Set(
-        planningData.data?.map((entry: any) => entry.packet_no) || []
+        planningData.data?.map((entry: PlanningEntry) => entry.packet_no) || []
       );
       const eligiblePackets = new Set(
         eligibleData.map((packet: ShinePacket) => packet.packet_no) || []
@@ -127,12 +142,16 @@ export const LssoingForm = () => {
       // Create ShinePacket objects for common packets
       const commonData: ShinePacket[] = commonPackets.map(packet_no => ({
         packet_no: packet_no as string,
-        kapan_no: planningData.data?.find((entry: any) => entry.packet_no === packet_no)?.kapan_no || ''
+        kapan_no: planningData.data?.find((entry: PlanningEntry) => entry.packet_no === packet_no)?.kapan_no || ''
       }));
 
       setAvailableNungKapanForAssign(commonData);
-    } catch (e: any) {
-      toast.error("પેકેટ ડેટા લાવતાં ભૂલ: " + e.message);
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        toast.error("પેકેટ ડેટા લાવતાં ભૂલ: " + e.message);
+      } else {
+        toast.error("અજાણી ભૂલ");
+      }
     } finally {
       setLoadingAssignDropdowns(false);
     }
@@ -161,7 +180,7 @@ export const LssoingForm = () => {
       }
 
       const data = await res.json();
-      const mappedData: ShineEntry[] = data.map((entry: any) => ({
+      const mappedData: ShineEntry[] = data.map((entry: PlanningEntry) => ({
         id: entry.id,
         packetNo: entry.packet_no,
         kapanNo: entry.kapan_no,
@@ -174,8 +193,12 @@ export const LssoingForm = () => {
         submissionDate: entry.submission_date ? new Date(entry.submission_date).toISOString().split("T")[0] : null,
       }));
       setShineEntries(mappedData);
-    } catch (err: any) {
-      toast.error("Shine entries લાવતાં ભૂલ: " + err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast.error("Shine entries લાવતાં ભૂલ: " + err.message);
+      } else {
+        toast.error("અજાણી ભૂલ");
+      }
       console.error("Failed to fetch shine data", err);
     } finally {
       setLoadingShineEntries(false);
@@ -189,7 +212,7 @@ export const LssoingForm = () => {
   }, [fetchAvailableNungKapanForAssign, fetchShineData]);
 
   // Auto-fill form fields when packet_no is selected
-  const [planningEntriesData, setPlanningEntriesData] = useState<any[]>([]);
+  const [planningEntriesData, setPlanningEntriesData] = useState<PlanningEntry[]>([]);
 
   // Fetch planning entries data for auto-fill
   const fetchPlanningEntriesData = useCallback(async () => {
@@ -209,8 +232,12 @@ export const LssoingForm = () => {
 
       const data = await response.json();
       setPlanningEntriesData(data.data || []);
-    } catch (err: any) {
-      console.error("Planning entries fetch error:", err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error("Planning entries fetch error:", err.message);
+      } else {
+        console.error("Planning entries fetch error: Ajani bhal");
+      }
     }
   }, []);
 
@@ -297,7 +324,6 @@ export const LssoingForm = () => {
         return;
       }
 
-      console.log('Assigning with:', assignForm);
       const res = await fetch(`${API_BASE_URL}/assign`, {
         method: "POST",
         headers: {
@@ -334,8 +360,12 @@ export const LssoingForm = () => {
       });
       fetchAvailableNungKapanForAssign(); // Refresh assign dropdowns
       fetchShineData(); // Refresh table
-    } catch (err: any) {
-      toast.error("Assign કરતી વખતે ભૂલ: " + err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast.error("Assign કરતી વખતે ભૂલ: " + err.message);
+      } else {
+        toast.error("અજાણી ભૂલ");
+      }
       //console.error(err);
     } finally {
       setSubmittingAssign(false);
@@ -356,9 +386,6 @@ export const LssoingForm = () => {
     }
 
     // Find the assigned packet details to get its assign_date for validation
-    const assignedPacket = shineEntries.find(
-      (p) => p.packetNo === packetNo
-    );
 
     
     if (submissionDate > today) {
@@ -376,7 +403,6 @@ export const LssoingForm = () => {
         return;
       }
 
-      console.log('Submitting with:', submitForm);
       const res = await fetch(`${API_BASE_URL}/submit`, {
         method: "POST",
         headers: {
@@ -409,8 +435,12 @@ export const LssoingForm = () => {
       });
       fetchAvailableNungKapanForAssign(); // Refresh assign dropdowns
       fetchShineData(); // Refresh table
-    } catch (err: any) {
-      toast.error("Submit કરતી વખતે ભૂલ: " + err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast.error("Submit કરતી વખતે ભૂલ: " + err.message);
+      } else {
+        toast.error("અજાણી ભૂલ");
+      }
       console.error(err);
     } finally {
       setSubmittingSubmit(false);
@@ -446,18 +476,6 @@ export const LssoingForm = () => {
   }, [submitForm.packetNo, shineEntries]);
 
   // When setting submitForm from a ShinePacket, only use packet_no and kapan_no. Set other fields to empty string or default values.
-  const handleAssignedPacketSelect = (packet_no: string) => {
-    const pkt = shineEntries.find(p => p.packetNo === packet_no);
-    setSubmitForm({
-      ...submitForm,
-      packetNo: pkt?.packetNo || '',
-      kapanNo: pkt?.kapanNo || '',
-      partyName: pkt?.partyName || '',
-      weight: pkt?.weight?.toString() || '',
-      carats: pkt?.carats ? pkt.carats.toString() : '',
-      tops: pkt?.tops ? pkt.tops.toString() : '',
-    });
-  };
 
   // 1. Remove assignedShinePacketsForSubmit state and its fetcher if not needed elsewhere
   // const [assignedShinePacketsForSubmit, setAssignedShinePacketsForSubmit] = useState<ShinePacket[]>([]);

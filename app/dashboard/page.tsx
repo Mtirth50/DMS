@@ -1,7 +1,8 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useRef } from "react";
-
+import { toast } from "sonner";
+import Link from 'next/link';
 import {
   FaBars, FaHome, FaGem, FaCogs, FaExchangeAlt, FaSignOutAlt,
   FaArrowLeft, FaUserCircle, FaClock, FaCheckCircle, FaBalanceScale
@@ -274,8 +275,13 @@ export default function Dashboard() {
       if (!res.ok) throw new Error("Failed to fetch transactions");
       const data = await res.json();
       setTransactionsData(data);
-    } catch (e) {
-      setTransactionsData([]);
+    } catch (e : unknown) {
+      if (e instanceof Error) {
+        toast.error(e.message);
+        setTransactionsData([]);
+      } else {
+        toast.error("ટેન્સેક્શન્સ લોડ કરવામાં નિષ્ફળ");
+      }
     }
   };
 
@@ -504,7 +510,7 @@ export default function Dashboard() {
       clearTimeout(timeoutId);
       charts.forEach(chart => chart.destroy());
     };
-  }, [dashboardData, activeTab]);
+  }, [dashboardData, activeTab, charts]);
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
@@ -557,9 +563,9 @@ export default function Dashboard() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between bg-white rounded-lg shadow p-4 mb-6">
           <div className="flex items-center gap-3">
-            <a href="/" className="btn btn-outline-primary flex items-center gap-2 text-primary">
-              <FaArrowLeft /> Back
-            </a>
+          <Link href="/" className="btn btn-outline-primary flex items-center gap-2 text-primary">
+  <FaArrowLeft /> Back
+</Link>
             <h4 className="mb-0 text-lg font-semibold" id="pageTitle">Dashboard Overview</h4>
           </div>
           <div className="flex items-center gap-2 text-primary">

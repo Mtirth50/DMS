@@ -38,6 +38,8 @@ interface ShineEntry {
   status: string;
   assignDate: string;
   submissionDate: string | null;
+  planner_name?: string;
+  kapan_wt?: number;
 }
 
 // Update NungKapanData interface
@@ -50,6 +52,22 @@ interface NungKapanData {
   carats?: number;
   tops?: number;
   assign_date?: string;
+  planner_name?: string;
+  kapan_wt?: number;
+}
+
+interface ShineApiResponse {
+  id: number;
+  packet_no: string;
+  kapan_no: string;
+  party_name: string;
+  karigar_name: string;
+  weight: number;
+  carats: number;
+  tops: number;
+  status: string;
+  assign_date?: string;
+  submission_date?: string;
 }
 
 export const ActiForm = () => {
@@ -78,7 +96,7 @@ export const ActiForm = () => {
   const [availableNungKapanForAssign, setAvailableNungKapanForAssign] = useState<NungKapanData[]>([]);
   // State to store assigned Shine packets for the Submit form dropdown
   // This will now fetch data for "whose Acti part assigned"
-  const [assignedShinePacketsForSubmit, setAssignedShinePacketsForSubmit] = useState<NungKapanData[]>([]);
+  const [assignedShinePacketsForSubmit] = useState<NungKapanData[]>([]);
   // State to store all Shine entries for the table
   const [shineEntries, setShineEntries] = useState<ShineEntry[]>([]);
 
@@ -91,11 +109,12 @@ export const ActiForm = () => {
       party_name: entry.partyName,
       weight: entry.weight,
       assign_date: entry.assignDate,
+      planner_name: entry.planner_name,
+      kapan_wt: entry.kapan_wt,
     }));
 
   // Loading states for various API calls
   const [loadingAssignDropdowns, setLoadingAssignDropdowns] = useState(true);
-  const [loadingSubmitDropdown, setLoadingSubmitDropdown] = useState(true);
   const [submittingAssign, setSubmittingAssign] = useState(false);
   const [submittingSubmit, setSubmittingSubmit] = useState(false);
   const [loadingShineEntries, setLoadingShineEntries] = useState(true);
@@ -137,7 +156,7 @@ export const ActiForm = () => {
 
       // Get packet numbers from both sources
       const planningPackets = new Set(
-        planningData.data?.map((entry: any) => entry.packet_no) || []
+        planningData.data?.map((entry: NungKapanData) => entry.packet_no) || []
       );
       const eligiblePackets = new Set(
         eligibleData.map((packet: NungKapanData) => packet.packet_no) || []
@@ -151,15 +170,19 @@ export const ActiForm = () => {
       // Create NungKapanData objects for common packets
       const commonData: NungKapanData[] = commonPackets.map(packet_no => ({
         packet_no: packet_no as string,
-        kapan_no: planningData.data?.find((entry: any) => entry.packet_no === packet_no)?.kapan_no || '',
-        party_name: planningData.data?.find((entry: any) => entry.packet_no === packet_no)?.planner_name || '',
-        weight: planningData.data?.find((entry: any) => entry.packet_no === packet_no)?.kapan_wt || 0,
+        kapan_no: planningData.data?.find((entry: NungKapanData) => entry.packet_no === packet_no)?.kapan_no || '',
+        party_name: planningData.data?.find((entry: NungKapanData) => entry.packet_no === packet_no)?.planner_name || '',
+        weight: planningData.data?.find((entry: NungKapanData) => entry.packet_no === packet_no)?.kapan_wt || 0,
         karigar_name: ''
       }));
 
       setAvailableNungKapanForAssign(commonData);
-    } catch (e: any) {
-      toast.error("પેકેટ ડેટા લાવતાં ભૂલ: " + e.message);
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        toast.error("પેકેટ ડેટા લાવતાં ભૂલ: " + e.message);
+      } else {
+        toast.error("અજાણી ભૂલ");
+      }
     } finally {
       setLoadingAssignDropdowns(false);
     }
@@ -187,8 +210,8 @@ export const ActiForm = () => {
         throw new Error(errorData.message || "Shine entries લાવવામાં સમસ્યા.");
       }
 
-      const data = await res.json();
-      const mappedData: ShineEntry[] = data.map((entry: any) => ({
+      const data: ShineApiResponse[] = await res.json();
+      const mappedData: ShineEntry[] = data.map((entry) => ({
         id: entry.id,
         packetNo: entry.packet_no,
         kapanNo: entry.kapan_no,
@@ -202,8 +225,12 @@ export const ActiForm = () => {
         submissionDate: entry.submission_date ? new Date(entry.submission_date).toISOString().split("T")[0] : null,
       }));
       setShineEntries(mappedData);
-    } catch (err: any) {
-      toast.error("Shine entries લાવતાં ભૂલ: " + err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast.error("Shine entries લાવતાં ભૂલ: " + err.message);
+      } else {
+        toast.error("અજાણી ભૂલ");
+      }
       console.error("Failed to fetch shine data", err);
     } finally {
       setLoadingShineEntries(false);
@@ -217,7 +244,7 @@ export const ActiForm = () => {
   }, [fetchAvailableNungKapanForAssign, fetchShineData]);
 
   // Auto-fill form fields when packet_no is selected
-  const [planningEntriesData, setPlanningEntriesData] = useState<any[]>([]);
+  const [planningEntriesData, setPlanningEntriesData] = useState<NungKapanData[]>([]);
 
   // Fetch planning entries data for auto-fill
   const fetchPlanningEntriesData = useCallback(async () => {
@@ -237,8 +264,12 @@ export const ActiForm = () => {
 
       const data = await response.json();
       setPlanningEntriesData(data.data || []);
-    } catch (err: any) {
-      console.error("Planning entries fetch error:", err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error("Planning entries fetch error:", err.message);
+      } else {
+        console.error("અજાણી ભૂલ");
+      }
     }
   }, []);
 
@@ -356,8 +387,12 @@ export const ActiForm = () => {
         packetNo: assignForm.packetNo,
         // The rest will be auto-filled by the onValueChange below
       }));
-    } catch (err: any) {
-      toast.error("Assign કરતી વખતે ભૂલ: " + err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast.error("Assign કરતી વખતે ભૂલ: " + err.message);
+      } else {
+        toast.error("અજાણી ભૂલ");
+      }
       console.error(err);
     } finally {
       setSubmittingAssign(false);
@@ -431,8 +466,12 @@ export const ActiForm = () => {
       });
       fetchAvailableNungKapanForAssign(); // Refresh assign dropdowns // Refresh submit dropdowns
       fetchShineData(); // Refresh table
-    } catch (err: any) {
-      toast.error("Submit કરતી વખતે ભૂલ: " + err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast.error("Submit કરતી વખતે ભૂલ: " + err.message);
+      } else {
+        toast.error("અજાણી ભૂલ");
+      }
       console.error(err);
     } finally {
       setSubmittingSubmit(false);

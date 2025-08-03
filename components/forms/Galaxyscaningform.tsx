@@ -32,6 +32,14 @@ type AssignedPacket = {
   submitDate?: string;
 };
 
+interface PlanningEntry {
+  packet_no: string;
+  kapan_no: string;
+  planner_name: string;
+  kapan_wt: number;
+  status: string;
+}
+
 const GalaxyScanningForm = () => {
   // State to hold the authentication token, which would be set after a successful login API call.
   const [authToken, setAuthToken] = useState<string | null>(null);
@@ -107,7 +115,7 @@ const GalaxyScanningForm = () => {
 
       const data = await response.json();
       // Assuming data is an array of objects like { packet_no: "PKT001", ... }
-      const allNungPacketNumbers = data.map((item: any) => item.packet_no);
+      const allNungPacketNumbers = data.map((item: PlanningEntry) => item.packet_no);
 
       // Filter out packets that are already in the assignedPackets state
       // Note: For persistent availability across sessions, you would need a GET endpoint
@@ -118,8 +126,12 @@ const GalaxyScanningForm = () => {
       );
 
       setAvailablePacketNumbers(filteredAvailablePackets);
-    } catch (error: any) {
-      showNotification(`Failed to fetch available packets: ${error.message}`, "error");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        showNotification(`Failed to fetch available packets: ${error.message}`, "error");
+      } else {
+        showNotification("અજાણી ભૂલ", "error");
+      }
       console.error("Error fetching available packets:", error);
     } finally {
       setIsLoading(false);
@@ -205,8 +217,12 @@ const GalaxyScanningForm = () => {
         submitDate: today,
       });
 
-    } catch (error: any) {
-      showNotification(`Failed to assign galaxy scanning: ${error.message}`, "error");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        showNotification(`Failed to assign galaxy scanning: ${error.message}`, "error");
+      } else {
+        showNotification("અજાણી ભૂલ", "error");
+      }
       console.error("Error assigning galaxy scanning:", error);
     } finally {
       setIsLoading(false);
@@ -265,8 +281,12 @@ const GalaxyScanningForm = () => {
         submitDate: "",
       });
 
-    } catch (error: any) {
-      showNotification(`Failed to submit galaxy scanning: ${error.message}`, "error");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        showNotification(`Failed to submit galaxy scanning: ${error.message}`, "error");
+      } else {
+        showNotification("અજાણી ભૂલ", "error");
+      }
       console.error("Error submitting galaxy scanning:", error);
     } finally {
       setIsLoading(false);

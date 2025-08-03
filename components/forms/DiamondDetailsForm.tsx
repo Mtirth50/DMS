@@ -111,9 +111,12 @@ export const DiamondDetailsForm: React.FC<Props> = ({ markTabComplete }) => {
         }
         setDalalList(dalals);
 
-      } catch (error: any) {
-        console.error('Frontend: Error fetching lists:', error);
+      } catch (error: unknown) {
+        if (error instanceof Error) {
         setDropdownError(`Failed to load contact lists: ${error.message}`);
+        } else {
+          console.error('Frontend: Error fetching lists:', error);
+        }
       } finally {
         setDropdownLoading(false);
       }
@@ -122,7 +125,7 @@ export const DiamondDetailsForm: React.FC<Props> = ({ markTabComplete }) => {
     if (authToken) { // Only fetch if token is available
       fetchLists();
     }
-  }, [authToken]); // Rerun when authToken changes
+  }, [authToken, getAuthHeaders]); // Rerun when authToken changes
 
   // Form validation logic (unchanged)
   const validateForm = () => {
@@ -214,12 +217,12 @@ export const DiamondDetailsForm: React.FC<Props> = ({ markTabComplete }) => {
             console.error('Frontend: Backend reported non-success or specific error:', result);
             alert(result.message || 'રફ ડાયમંડ ઉમેરવામાં એરર આવી');
           }
-        } catch (jsonParseError: any) {
-          // This block is hit if res.json() failed to parse the response as JSON
-          console.error('Frontend: CRITICAL ERROR - Failed to parse JSON response:', jsonParseError);
-          console.error('Frontend: This means the backend sent something that is NOT valid JSON, even if it claims to be.');
-          alert(`સર્વર પ્રતિભાવનું પૃથ્થકરણ કરવામાં ભૂલ: ${jsonParseError.message}. કૃપા કરીને કન્સોલ તપાસો.`);
-          // DO NOT call res.text() here again, as it's already been read by res.json()
+        } catch (jsonParseError: unknown) {
+          if (jsonParseError instanceof Error) {
+            alert(`સર્વર પ્રતિભાવનું પૃથ્થકરણ કરવામાં ભૂલ: ${jsonParseError.message}. કૃપા કરીને કન્સોલ તપાસો.`);
+          } else {
+            alert(`સર્વર પ્રતિભાવનું પૃથ્થકરણ કરવામાં ભૂલ: અજાણી ભૂલ. કૃપા કરીને કન્સોલ તપાસો.`);
+          }
         }
       } else {
         // If content type is not JSON, read it as text
@@ -228,11 +231,14 @@ export const DiamondDetailsForm: React.FC<Props> = ({ markTabComplete }) => {
         alert('સર્વર તરફથી અપેક્ષિત JSON પ્રતિસાદ મળ્યો નથી. કૃપા કરીને કન્સોલ તપાસો.');
       }
 
-    } catch (err: any) {
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        alert(`નેટવર્ક એરર આવી અથવા સર્વર સાથે કનેક્ટ કરી શકાયું નહીં: ${err.message || 'અજાણી ભૂલ'}`);
+      } else {
+        alert(`નેટવર્ક એરર આવી અથવા સર્વર સાથે કનેક્ટ કરી શકાયું નહીં: અજાણી ભૂલ`);
+      }
       // This catch block is for true network errors (server down, CORS before response)
-      console.error('Frontend: Top-level catch block activated. Possible network/CORS error:', err);
-      alert(`નેટવર્ક એરર આવી અથવા સર્વર સાથે કનેક્ટ કરી શકાયું નહીં: ${err.message || 'અજાણી ભૂલ'}`);
-    } finally {
+    }finally {
       setLoading(false);
     }
   };

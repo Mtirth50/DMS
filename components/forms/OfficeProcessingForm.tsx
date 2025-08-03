@@ -39,9 +39,7 @@ export const OfficeProcessingForm = () => {
         if (!res.ok) throw new Error("Failed to fetch rough diamonds");
         const data = await res.json();
         setRoughDiamonds(data);
-      } catch (e) {
-        // Optionally show a toast or error
-      } finally {
+      }  finally {
         setLoadingStock(false);
       }
     };

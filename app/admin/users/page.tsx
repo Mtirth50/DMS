@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { toast } from "sonner";
@@ -30,8 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { Pencil, Trash2, UserPlus, Shield, Mail, User } from "lucide-react";
+import { Pencil, Trash2, UserPlus, User } from "lucide-react";
 
 interface User {
   id: number;
@@ -64,19 +63,11 @@ export default function UserManagementPage() {
   const { user: currentUser } = useAuth();
   const router = useRouter();
 
-  const API_BASE_URL = "http://localhost:4000/api";
-
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
   const getAuthToken = () => localStorage.getItem("authToken");
+  
 
-  useEffect(() => {
-    if (currentUser?.role !== "admin") {
-      router.push("/");
-      return;
-    }
-    fetchUsers();
-  }, [currentUser]);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       const token = getAuthToken();
       const response = await fetch(`${API_BASE_URL}/users`, {
@@ -95,12 +86,24 @@ export default function UserManagementPage() {
       } else {
         throw new Error(data.message || 'Failed to fetch users');
       }
-    } catch (error) {
-      toast.error("યુઝર્સ લોડ કરવામાં નિષ્ફળ");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("યુઝર્સ લોડ કરવામાં નિષ્ફળ");
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (currentUser?.role !== "admin") {
+      router.push("/");
+      return;
+    }
+    fetchUsers();
+  }, [currentUser, router, fetchUsers]);
 
   const handleCreateUser = async () => {
     try {
@@ -140,8 +143,12 @@ export default function UserManagementPage() {
         role: "office_user",
       });
       fetchUsers();
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("યુઝર ઉમેરવામાં નિષ્ફળ");
+      }
     }
   };
 
@@ -169,8 +176,12 @@ export default function UserManagementPage() {
       setIsEditModalOpen(false);
       setSelectedUser(null);
       fetchUsers();
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("યુઝર અપડેટ કરવામાં નિષ્ફળ");
+      }
     }
   };
 
@@ -196,8 +207,12 @@ export default function UserManagementPage() {
       setIsDeleteModalOpen(false);
       setSelectedUser(null);
       fetchUsers();
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("યુઝર કાઢી નાખવામાં નિષ્ફળ");
+      }
     }
   };
 
@@ -224,8 +239,12 @@ export default function UserManagementPage() {
 
       toast.success(data.message);
       fetchUsers();
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("યુઝર સફળતાપૂર્વક કાઢી નાખ્યો");
+      }
     }
   };
 
@@ -481,7 +500,7 @@ export default function UserManagementPage() {
           </div>
           <DialogFooter>
             <Button
-              variant="outline"
+              variant='outline'
               onClick={() => setIsEditModalOpen(false)}
             >
               રદ કરો
@@ -497,7 +516,7 @@ export default function UserManagementPage() {
           <DialogHeader>
             <DialogTitle>યુઝર કાઢી નાખો</DialogTitle>
             <DialogDescription>
-              શું તમે ખરેખર "{selectedUser?.username}" ને કાઢી નાખવા માંગો છો?
+              શું તમે ખરેખર &apos;{selectedUser?.username}&apos; ને કાઢી નાખવા માંગો છો?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

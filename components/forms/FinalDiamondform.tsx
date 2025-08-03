@@ -4,15 +4,20 @@ import { useEffect, useState } from "react";
 import { useFormContext } from "@/context/FormContext";
 import {
   Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
+  CardContent
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+
+
+interface OfficeProcessingRecord {
+  office_name: string;
+  rough_name: string;
+  // Add more fields if needed later
+}
+
 
 export const FinalDiamondform = () => {
   const {
@@ -20,11 +25,10 @@ export const FinalDiamondform = () => {
     updateFormData,
     markTabComplete,
     renderError,
-    errors,
   } = useFormContext();
 
   const [totalWeight, setTotalWeight] = useState(0);
-  const [officeRecords, setOfficeRecords] = useState<any[]>([]);
+  const [officeRecords, setOfficeRecords] = useState<OfficeProcessingRecord[]>([]);
   const [officeNames, setOfficeNames] = useState<string[]>([]);
   const [roughNames, setRoughNames] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -49,9 +53,13 @@ export const FinalDiamondform = () => {
         const data = await res.json();
         setOfficeRecords(data);
         // Unique office names
-        setOfficeNames(Array.from(new Set(data.map((d: any) => String(d.office_name)))));
-      } catch (e) {
-        // Optionally show a toast
+        setOfficeNames(Array.from(new Set(data.map((d : OfficeProcessingRecord) => String(d.office_name)))));
+      } catch (e: unknown) {
+        if (e instanceof Error) {
+          toast.error("Office records લાવતાં ભૂલ: " + e.message);
+        } else {
+          toast.error("અજાણી ભૂલ");
+        }
       }
     };
     fetchOfficeRecords();
@@ -66,7 +74,7 @@ export const FinalDiamondform = () => {
     const filtered = officeRecords.filter(
       (rec) => rec.office_name === formData.office_name_final
     );
-    setRoughNames(Array.from(new Set(filtered.map((d) => String(d.rough_name)))));
+    setRoughNames(Array.from(new Set(filtered.map((d : OfficeProcessingRecord) => String(d.rough_name)))));
     // If current rough is not in the new list, clear it
     if (!roughNames.includes(formData.Roughnamefinal)) {
       updateFormData("Roughnamefinal", "");
@@ -99,8 +107,12 @@ export const FinalDiamondform = () => {
       if (!res.ok) throw new Error(data.message);
       toast.success(data.message || "Final diamond record added successfully");
       markTabComplete("measurements");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : String(e));
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        toast.error("Final diamond સફળતાપૂર્વક submit થયું!" + e.message);
+      } else {
+        toast.error("અજાણી ભૂલ");
+      }
     } finally {
       setLoading(false);
     }

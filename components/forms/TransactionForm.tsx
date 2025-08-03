@@ -1,11 +1,8 @@
 // components/forms/TransactionForm.tsx
-
-import { useFormContext } from "@/context/FormContext";
 import {
   Card,
   CardHeader,
   CardTitle,
-  CardDescription,
   CardContent,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -24,7 +21,6 @@ type Contact = {
 const API_BASE_URL = 'http://localhost:4000/api';
 
 const TransactionForm = () => {
-  const { formData, updateFormData, markTabComplete, errors } = useFormContext();
 
   const [veparis, setVeparis] = useState<Contact[]>([]);
   const [dalals, setDalals] = useState<Contact[]>([]);
@@ -88,12 +84,16 @@ const TransactionForm = () => {
         setVeparis(veparisData);
         setDalals(dalalsData);
 
-      } catch (err: any) {
-        setError(err.message || 'An unknown error occurred while fetching contacts.');
-        // If it's a token error, you might want to log out the user
-        if (err.message.includes("token") || err.message.includes("Unauthorized")) {
-            console.error("Auth error, redirecting to login or logging out.");
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message || 'An unknown error occurred while fetching contacts.');
+      
+          if (err.message.includes('token') || err.message.includes('Unauthorized')) {
+            console.error('Auth error, redirecting to login or logging out.');
             // Example: localStorage.removeItem('authToken'); navigate('/login');
+          }
+        } else {
+          setError('An unknown error occurred while fetching contacts.');
         }
       } finally {
         setLoading(false);
@@ -103,7 +103,7 @@ const TransactionForm = () => {
     if (authToken) { // Only fetch if token exists
       fetchContacts();
     }
-  }, [authToken]); // Rerun when authToken changes
+  }, [authToken, getAuthHeaders]); // Rerun when authToken changes
 
   // --- API Call Functions (modified to use authToken) ---
   const addContactAPI = async (contact: Omit<Contact, 'id'>, type: "vepari" | "dalal") => {
@@ -121,8 +121,12 @@ const TransactionForm = () => {
 
       const newContact = await response.json();
       return newContact;
-    } catch (err: any) {
-      setError(err.message || `Failed to add ${type}.`);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError(`Failed to add ${type}.`);
+      }
       throw err;
     }
   };
@@ -140,8 +144,12 @@ const TransactionForm = () => {
         throw new Error(errorData.message || `Failed to update ${type}`);
       }
       return response.json();
-    } catch (err: any) {
-      setError(err.message || `Failed to update ${type}.`);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError(`Failed to add ${type}.`);
+      }
       throw err;
     }
   };
@@ -158,8 +166,12 @@ const TransactionForm = () => {
         throw new Error(errorData.message || `Failed to delete ${type}`);
       }
       return true;
-    } catch (err: any) {
-      setError(err.message || `Failed to delete ${type}.`);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError(`Failed to add ${type}.`);
+      }
       throw err;
     }
   };
@@ -212,9 +224,7 @@ const TransactionForm = () => {
         updater([...list, newContact]);
       }
       setModalOpen(false);
-    } catch (err) {
-      // Error already set by API functions
-    } finally {
+    }  finally {
       setLoading(false);
     }
   };
@@ -229,9 +239,8 @@ const TransactionForm = () => {
       } else {
         setDalals(dalals.filter((d) => d.id !== id));
       }
-    } catch (err) {
-      // Error already set by API function
-    } finally {
+    } 
+   finally {
       setLoading(false);
     }
   };

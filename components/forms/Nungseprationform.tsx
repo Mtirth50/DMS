@@ -63,9 +63,11 @@ export const NungSeparationForm = () => {
 
         const data: Packet[] = await response.json();
         setPackets(data);
-      } catch (e: any) {
-        setError(e.message || "An unexpected error occurred.");
-        toast.error("Error fetching packets: " + e.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+        setError(err.message);
+        toast.error("Error fetching packet: ");
+      } 
       } finally {
         setLoading(false);
       }
@@ -130,10 +132,12 @@ export const NungSeparationForm = () => {
       const updatedData: Packet[] = await updatedResponse.json();
       setPackets(updatedData);
 
-    } catch (e: any) {
-      setError(e.message);
-      toast.error("Error adding packet: " + e.message);
-    } finally {
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+      setError(err.message);
+      toast.error("Error adding packet: ");
+    } 
+  }finally {
       setSubmitting(false);
     }
   };

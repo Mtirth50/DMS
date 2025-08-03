@@ -4,9 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Home,
-  Package,
   BarChart3,
-  FileText,
   Menu,
   User,
   LogOut,
@@ -14,7 +12,6 @@ import {
   Diamond,
   Users,
   Bell,
-  ShoppingCart,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -29,7 +26,6 @@ import {
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -42,7 +38,7 @@ import { LoginDialog } from "@/components/pages/login-dialog";
 export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const router = useRouter();
-  const { user, isLoginOpen, openLogin, logout, closeLogin, login } = useAuth();
+  const { user, isLoginOpen, openLogin, logout, closeLogin } = useAuth();
   
 
 
