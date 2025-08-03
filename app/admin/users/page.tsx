@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { toast } from "sonner";
+import { Navbar } from "@/components/navbar";
 import {
   Card,
   CardContent,
@@ -36,7 +37,7 @@ interface User {
   id: number;
   username: string;
   email: string;
-  role: "admin" | "user";
+  role: "admin" | "office_user";
   is_active: boolean;
 }
 
@@ -51,12 +52,12 @@ export default function UserManagementPage() {
     username: "",
     email: "",
     password: "",
-    role: "user" as "admin" | "user",
+    role: "office_user" as "admin" | "office_user",
   });
   const [editFormData, setEditFormData] = useState({
     username: "",
     email: "",
-    role: "user" as "admin" | "user",
+    role: "office_user" as "admin" | "office_user",
     password: "",
   });
 
@@ -89,7 +90,11 @@ export default function UserManagementPage() {
       }
 
       const data = await response.json();
-      setUsers(data);
+      if (data.success) {
+        setUsers(data.users);
+      } else {
+        throw new Error(data.message || 'Failed to fetch users');
+      }
     } catch (error) {
       toast.error("યુઝર્સ લોડ કરવામાં નિષ્ફળ");
     } finally {
@@ -100,13 +105,24 @@ export default function UserManagementPage() {
   const handleCreateUser = async () => {
     try {
       const token = getAuthToken();
+      
+      // Ensure role is exactly what backend expects
+      const payload = {
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role // Ensure lowercase
+      };
+      
+      console.log('Creating user with payload:', payload);
+      
       const response = await fetch(`${API_BASE_URL}/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
@@ -121,7 +137,7 @@ export default function UserManagementPage() {
         username: "",
         email: "",
         password: "",
-        role: "user",
+        role: "office_user",
       });
       fetchUsers();
     } catch (error: any) {
@@ -238,16 +254,22 @@ export default function UserManagementPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">યુઝર મેનેજમેન્ટ</h1>
-          <p className="text-gray-600">એડમિન પેનલમાંથી યુઝર્સ મેનેજ કરો</p>
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">યુઝર મેનેજમેન્ટ</h1>
+            <p className="mt-2 text-sm text-gray-600">
+              સિસ્ટમ યુઝર્સનું સંચાલન કરો
+            </p>
+          </div>
+          <Button onClick={() => setIsCreateModalOpen(true)}>
+            <UserPlus className="mr-2 h-4 w-4" />
+            નવો યુઝર ઉમેરો
+          </Button>
         </div>
-        <Button onClick={() => setIsCreateModalOpen(true)}>
-          <UserPlus className="mr-2 h-4 w-4" />
-          નવો યુઝર ઉમેરો
-        </Button>
+
       </div>
 
       <Card>
@@ -368,7 +390,7 @@ export default function UserManagementPage() {
               <Label htmlFor="role">રોલ</Label>
               <Select
                 value={formData.role}
-                onValueChange={(value: "admin" | "user") =>
+                onValueChange={(value: "admin" | "office_user") =>
                   setFormData({ ...formData, role: value })
                 }
               >
@@ -376,7 +398,7 @@ export default function UserManagementPage() {
                   <SelectValue placeholder="રોલ પસંદ કરો" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="user">યુઝર</SelectItem>
+                  <SelectItem value="office_user">યુઝર</SelectItem>
                   <SelectItem value="admin">એડમિન</SelectItem>
                 </SelectContent>
               </Select>
@@ -431,7 +453,7 @@ export default function UserManagementPage() {
               <Label htmlFor="edit-role">રોલ</Label>
               <Select
                 value={editFormData.role}
-                onValueChange={(value: "admin" | "user") =>
+                onValueChange={(value: "admin" | "office_user") =>
                   setEditFormData({ ...editFormData, role: value })
                 }
               >
